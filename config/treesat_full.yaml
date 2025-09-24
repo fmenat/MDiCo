@@ -1,0 +1,54 @@
+output_dir_folder: ./results/
+input_dir_folder: ./data/
+additional_method_name: -Full
+
+load_memory: False
+data_name: treesat_train
+task_type: multilabel
+
+training: 
+  max_epochs: 2 #increase this for proper training
+  batch_size: 128
+  emb_dim: 128 
+  early_stop_args: 
+    min_delta: 0.01
+    mode: min
+    patience: 5
+    verbose: True
+
+  additional_args:
+    weights_loss: 
+      main: 1
+      auxiliary: 1
+      discriminative: 1
+      contrastive: 1
+    unused_flag: True
+    contrastive_temp: 0.1
+
+    optimizer: adam
+    lr: 0.001
+
+experiment: 
+  runs_seed: [10] #repetitions
+  preprocess: 
+    fillnan: True
+    form: zscore  
+
+architecture:
+  encoders: 
+    S2_S2mask:
+      model_type: tempcnn
+      dropout: 0.2
+      kernel_size: 5 #default value: 5
+      layer_size: 128 #default value: 128
+      n_layers: 2 #default value: 3
+      seq_len: 146
+      use_norm: False
+    aerial:
+      model_type: predefined
+      model_name: resnet50
+      use_norm: False
+  predictive_model:
+    model_type: linear
+    
+    

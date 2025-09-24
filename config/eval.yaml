@@ -1,0 +1,14 @@
+output_dir_folder: ./results/
+input_dir_folder: ./data/
+
+task_type: classification #it works for binary and multiclass
+#task_type: multilabel
+#task_type: regression
+
+#data_name: cropharvest_binary 
+data_name: cropharvest_multi
+#data_name: treesat_train
+#data_name: lfmc
+
+methods_to_plot: null #consider all
+load_memory: True

@@ -1,0 +1,63 @@
+output_dir_folder: ./results/
+input_dir_folder: ./data/
+additional_method_name: -Full
+
+load_memory: True
+data_name: lfmc
+task_type: regression
+
+training: 
+  max_epochs: 2 #increase this for proper training
+  batch_size: 32
+  emb_dim: 128 
+  early_stop_args: 
+    min_delta: 0.01
+    mode: min
+    patience: 5
+    verbose: True
+
+  additional_args:
+    weights_loss: 
+      main: 1
+      auxiliary: 1
+      discriminative: 1
+      contrastive: 1
+    unused_flag: True
+    contrastive_temp: 0.1
+
+    optimizer: adam
+    lr: 0.001
+    loss_args:
+      name: norm-mse
+      mean: 103.9868
+      std: 39.562313
+
+experiment: 
+  runs_seed: [10] #repetitions
+  kfolds: 10
+  preprocess: 
+    fillnan: True
+    form: zscore  
+
+architecture:
+  encoders: 
+    S1_S1Ind:
+      model_type: tempcnn
+      dropout: 0.2
+      kernel_size: 5 #default value: 5
+      layer_size: 128 #default value: 128
+      n_layers: 2 #default value: 3
+      use_norm: True  
+      seq_len: 4
+    S2_S2Ind: 
+      model_type: tempcnn
+      dropout: 0.2
+      kernel_size: 5 #default value: 5
+      layer_size: 128 #default value: 128
+      n_layers: 2 #default value: 3
+      use_norm: True  
+      seq_len: 4
+  predictive_model:
+    model_type: linear
+    
+    
