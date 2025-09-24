@@ -23,7 +23,6 @@ training:
       auxiliary: 1
       discriminative: 1
       contrastive: 1
-    unused_flag: True
     contrastive_temp: 0.1
 
     optimizer: adam

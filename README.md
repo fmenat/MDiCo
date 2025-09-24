@@ -1,6 +1,8 @@
 # MDiCo: Multi-modal Disentanglement for Co-learning with Earth Observation data
 
-Public repository of our work in multi-modal co-learning for missing modality with EO data.
+> Public repository of our work in multi-modal co-learning for missing modality with EO data
+
+---
 
 ![missing data](imgs/mdico_model.jpg)
 
@@ -30,11 +32,6 @@ python evaluate.py -s config/eval.yaml
 All details to folder paths and configurations are inside the yaml files.
 
 ---
-
-
-# :scroll: Source
-
-* nothing yet
 
 
 # 🖊️ Citation

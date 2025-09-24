@@ -15,7 +15,6 @@ class MDiCo(_BaseModalitiesLightning):
                  n_labels: int,
                  loss_args: dict ={},
                  weights_loss: dict = {},
-                 unused_flag: bool = True,
                  contrastive_temp: float = 0.1,
                  **kwargs,
                  ):
@@ -24,31 +23,25 @@ class MDiCo(_BaseModalitiesLightning):
         self.N_modalities = len(self.modality_names)
         self.n_labels = n_labels
         self.weights_loss = weights_loss
-        self.unused_flag = unused_flag
         self.contrastive_temp = contrastive_temp
 
         #for encoding unique and common information
         self.modality_encoders_unique = {}
         self.modality_encoders_common = {}
-        if self.unused_flag:
-            self.aux_common_layer = {}
+        self.aux_common_layer = {}
         self.modality_prediction_heads = {}
         for v_name ,model_v in modality_encoders.items():
             self.modality_encoders_unique[v_name] = copy.deepcopy(model_v)
             self.modality_encoders_common[v_name] = copy.deepcopy(model_v)
-            if self.unused_flag:
-                emb_dim = model_v.get_output_size() //2
-                self.aux_common_layer[v_name] =  nn.Sequential(nn.Linear(emb_dim*2, emb_dim), nn.BatchNorm1d(emb_dim), nn.ReLU())
-            else:
-                emb_dim = model_v.get_output_size()
+            emb_dim = model_v.get_output_size() //2
+            self.aux_common_layer[v_name] =  nn.Sequential(nn.Linear(emb_dim*2, emb_dim), nn.BatchNorm1d(emb_dim), nn.ReLU())
 
             #for main prediction
             self.modality_prediction_heads[v_name] = Generic_Decoder(copy.deepcopy(predictive_core), out_dims=self.n_labels, input_dim=emb_dim*2)
             self.modality_prediction_heads[v_name].update_first_layer(emb_dim*2)
         self.modality_encoders_unique = nn.ModuleDict(self.modality_encoders_unique)
         self.modality_encoders_common = nn.ModuleDict(self.modality_encoders_common)
-        if self.unused_flag:
-            self.aux_common_layer = nn.ModuleDict(self.aux_common_layer)
+        self.aux_common_layer = nn.ModuleDict(self.aux_common_layer)
         self.modality_prediction_heads = nn.ModuleDict(self.modality_prediction_heads)
 
         #for auxiliary prediction
@@ -57,17 +50,11 @@ class MDiCo(_BaseModalitiesLightning):
         #for modality prediction
         self.modality_head_adv = Generic_Decoder(copy.deepcopy(predictive_core), out_dims=len(self.modality_names), input_dim=emb_dim)
         self.modality_head_awr_inf = Generic_Decoder(copy.deepcopy(predictive_core), out_dims=len(self.modality_names), input_dim=emb_dim)
-        if self.unused_flag:
-            self.modality_head_awr_irr = Generic_Decoder(copy.deepcopy(predictive_core), out_dims=len(self.modality_names), input_dim=emb_dim)
+        self.modality_head_awr_irr = Generic_Decoder(copy.deepcopy(predictive_core), out_dims=len(self.modality_names), input_dim=emb_dim)
         
         self.criteria = loss_args["function"] if "function" in loss_args else get_loss_by_name(**loss_args)
         self.criteria_modality = nn.CrossEntropyLoss()
         self.criteria_contrastive = pairwise_contrastive_loss(self.contrastive_temp, loss_type="infonce")
-        self.awl = AutomaticWeightedLoss(6, self.weights_loss.get("weighting"), ["main",
-                                                                                  "auxiliary" if self.weights_loss.get("auxiliary",0) != 0 else None,
-                                                                                    "discriminative" if self.weights_loss.get("discriminative",0) != 0 else None,
-                                                                                    "contrastive" if self.weights_loss.get("contrastive",0) != 0 else None
-                                                                                ])
         
         self.save_hyperparameters(ignore=["modality_encoders","predictive_core"])
 
@@ -101,18 +88,14 @@ class MDiCo(_BaseModalitiesLightning):
         for v_name in out_zs_modalities_spe.keys():
             spec_full = out_zs_modalities_spe[v_name]
             sha_full = out_zs_modalities_sha[v_name]
-
-            if self.unused_flag:
-                nfeat = spec_full.shape[1]//2
-                spe_inf, spe_irr = spec_full[:, :nfeat], spec_full[:, nfeat:]
-                sha_inv = self.aux_common_layer[v_name](sha_full)
-                aux_reps["specific"][v_name] = spe_inf
-                aux_reps["unused"][v_name]  = spe_irr
-                aux_reps["shared"][v_name]   = sha_inv
-            else:
-                aux_reps["specific"][v_name] = spec_full
-                aux_reps["shared"][v_name]   = sha_full
-
+            
+            nfeat = spec_full.shape[1]//2
+            spe_inf, spe_irr = spec_full[:, :nfeat], spec_full[:, nfeat:]
+            sha_inv = self.aux_common_layer[v_name](sha_full)
+            aux_reps["specific"][v_name] = spe_inf
+            aux_reps["unused"][v_name]  = spe_irr
+            aux_reps["shared"][v_name]   = sha_inv
+            
             #main prediction for L_MAIN
             out_y = self.modality_prediction_heads[v_name](torch.cat([aux_reps["specific"][v_name], aux_reps["shared"][v_name]],axis=-1)) 
             main_out_pred[v_name] = self.apply_norm_out(out_y, out_norm) #normalize output (softmax/sigmoid) when is used in inference
@@ -123,8 +106,7 @@ class MDiCo(_BaseModalitiesLightning):
 
             #auxiliary prediction for L_MOD
             aux_out_mod_discr["specific"][v_name] = self.modality_head_awr_inf(aux_reps["specific"][v_name]) 
-            if self.unused_flag:
-                aux_out_mod_discr["unused"][v_name] = self.modality_head_awr_irr(aux_reps["shared"][v_name] ) 
+            aux_out_mod_discr["unused"][v_name] = self.modality_head_awr_irr(aux_reps["shared"][v_name] ) 
             
         return_dict = {"modalities:prediction": main_out_pred, 
                        "modalities:aux:prediction":aux_out_y_zs}
@@ -168,24 +150,17 @@ class MDiCo(_BaseModalitiesLightning):
                     if v_i == v_j: #do not compute loss with itself
                         continue
                     loss_dic["Lcon"+modality_names[v_i]+"-"+modality_names[v_j]] = self.criteria_contrastive(rep_modality["shared"][modality_names[v_i]], rep_modality["shared"][modality_names[v_j]])
-                    
                     loss_contr += self.weights_loss["contrastive"]*loss_dic["Lcon"+modality_names[v_i]+"-"+modality_names[v_j]] 
 
             #Modality discriminative losses
             if self.weights_loss.get("discriminative", 0) != 0: #loss is 'activated'
                 label_ = np.where(v_name == np.asarray(self.modality_names))[0].item()
                 modality_labels = torch.ones_like(aux_discr_modality["specific"][v_name][:,0], dtype=torch.long)*label_
-                loss_dic["Ldisc"+v_name] = self.criteria_modality(aux_discr_modality["specific"][v_name], modality_labels)
-                if self.unused_flag:
-                    loss_dic["Ldisc"+v_name] += self.criteria_modality(aux_discr_modality["unused"][v_name], modality_labels)
-                    loss_dic["Ldisc"+v_name] = loss_dic["Ldisc"+v_name]/2
+                loss_dic["Ldisc"+v_name] = (self.criteria_modality(aux_discr_modality["specific"][v_name], modality_labels) + self.criteria_modality(aux_discr_modality["unused"][v_name], modality_labels) )/2
                 loss_mod += self.weights_loss["discriminative"]*loss_dic["Ldisc"+v_name]/len(modality_names) 
 
-        if self.weights_loss.get("weighting","sum") == "sum":
-            total_loss = loss_main + loss_aux +  loss_contr + loss_mod 
-        else:
-            total_loss = self.awl(loss_main, loss_aux, loss_contr, loss_mod)
-
+        total_loss = loss_main + loss_aux +  loss_contr + loss_mod 
+    
         return {"objective": total_loss, **loss_dic}
     
     def get_encoder_models(self):

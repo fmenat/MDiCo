@@ -1,6 +1,6 @@
 output_dir_folder: ./results/
 input_dir_folder: ./data/
-additional_method_name: -Weighted
+additional_method_name: -wtContrastive
 
 load_memory: True
 data_name: cropharvest_multi
@@ -22,13 +22,12 @@ training:
       main: 1
       auxiliary: 1
       discriminative: 1
-      contrastive: 1
-      weighting: uncertainty #uncertainty, corrected
-    unused_flag: True
+      contrastive: 0
     contrastive_temp: 0.1
 
     optimizer: adam
     lr: 0.001
+
 
 experiment: 
   runs_seed: [10] #repetitions
