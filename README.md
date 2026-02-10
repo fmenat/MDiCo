@@ -1,6 +1,8 @@
 # MDiCo: Multi-modal Disentanglement for Co-learning with Earth Observation data
+[![paper](https://img.shields.io/badge/arXiv-2510.19579-D12424)](https://www.arxiv.org/abs/2510.19579) 
+[![DOI:10.1007/s10994-025-06903-0)](http://img.shields.io/badge/DOI-10.1007/s10994-025-06903-blue.svg)](https://doi.org/https://doi.org/10.1007/s10994-025-06903-0)
 
-> Public repository of our work in multi-modal co-learning for missing modality with EO data
+> Public repository of our work [*Multi-modal co-learning for Earth observation: enhancing single-modality models via modality collaboration*](https://doi.org/10.1007/s10994-025-06903-0) 
 
 ---
 
@@ -35,5 +37,16 @@ All details to folder paths and configurations are inside the yaml files.
 
 
 # 🖊️ Citation
+Mena, Francisco, et al. "*Multi-modal co-learning for Earth observation: enhancing single-modality models via modality collaboration.*" Machine Learning 114.12 (2025): 279.
 
-...
+@article{mena2025multi,
+  title={Multi-modal co-learning for Earth observation: enhancing single-modality models via modality collaboration},
+  author={Mena, Francisco and Ienco, Dino and Dantas, Cassio F and Interdonato, Roberto and Dengel, Andreas},
+  journal={Machine Learning},
+  volume={114},
+  number={12},
+  pages={279},
+  year={2025},
+  publisher={Springer},
+  doi={10.1007/s10994-025-06903-0}
+}
