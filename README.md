@@ -39,6 +39,7 @@ All details to folder paths and configurations are inside the yaml files.
 # 🖊️ Citation
 Mena, Francisco, et al. "*Multi-modal co-learning for Earth observation: enhancing single-modality models via modality collaboration.*" Machine Learning 114.12 (2025): 279.
 
+```bibtex
 @article{mena2025multi,
   title={Multi-modal co-learning for Earth observation: enhancing single-modality models via modality collaboration},
   author={Mena, Francisco and Ienco, Dino and Dantas, Cassio F and Interdonato, Roberto and Dengel, Andreas},
@@ -50,3 +51,4 @@ Mena, Francisco, et al. "*Multi-modal co-learning for Earth observation: enhanci
   publisher={Springer},
   doi={10.1007/s10994-025-06903-0}
 }
+```
